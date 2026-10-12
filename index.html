@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Protocolo de Calistenia - Alta Densidade</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --surface-color: #1a1a1a;
+            --primary-neon: #39ff14; /* Verde Neon */
+            --alert-neon: #ff5f1f; /* Laranja Neon */
+            --text-main: #f5f5f5;
+            --text-secondary: #aaaaaa;
+            --nav-bg: #121212;
+            --card-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 90px; /* Espaço para a navbar inferior */
+            line-height: 1.6;
+            transition: background-color 0.1s ease;
+        }
+
+        body.flash-alert {
+            background-color: var(--alert-neon);
+        }
+
+        /* Tipografia e Layout */
+        h1, h2, h3 {
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+
+        h1 { font-size: 1.8rem; font-weight: 800; text-align: center; margin: 20px 0; color: var(--primary-neon); }
+        h2 { font-size: 1.4rem; border-bottom: 2px solid var(--surface-color); padding-bottom: 8px; margin-top: 24px; }
+        h3 { font-size: 1.2rem; margin-top: 16px; color: var(--alert-neon); }
+        p { font-size: 1rem; margin-bottom: 16px; color: var(--text-secondary); }
+        
+        ul { padding-left: 20px; margin-bottom: 16px; color: var(--text-secondary); }
+        li { margin-bottom: 8px; }
+        strong { color: var(--text-main); }
+
+        .container {
+            padding: 0 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Cards */
+        .card {
+            background-color: var(--surface-color);
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border-left: 4px solid var(--primary-neon);
+        }
+        
+        .card.rest-card {
+            border-left: 4px solid var(--alert-neon);
+        }
+
+        /* Tabs (Conteúdo) */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Navegação Inferior (Bottom Tabs) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--nav-bg);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 20px 0; /* Padding extra para iOS */
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 25%;
+            padding: 10px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-btn.active {
+            color: var(--primary-neon);
+        }
+
+        .nav-icon {
+            font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        /* Cronômetros (Timers fixos no topo das abas de treino) */
+        .timer-panel {
+            background-color: var(--surface-color);
+            padding: 16px;
+            border-radius: var(--card-radius);
+            margin-bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            border: 1px solid #333;
+        }
+
+        .timer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .timer-display {
+            font-size: 2.2rem;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-main);
+            min-width: 90px;
+            text-align: center;
+        }
+
+        .timer-display.alert {
+            color: var(--alert-neon);
+        }
+
+        .timer-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: -4px;
+        }
+
+        /* Botões Touch-Friendly */
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 16px 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #000;
+            text-transform: uppercase;
+        }
+
+        .btn-primary { background-color: var(--primary-neon); }
+        .btn-alert { background-color: var(--alert-neon); color: #fff; }
+        .btn-outline { 
+            background-color: transparent; 
+            border: 2px solid #555; 
+            color: var(--text-main); 
+            flex-grow: 0;
+            min-width: 60px;
+        }
+
+        .btn:active {
+            opacity: 0.7;
+            transform: scale(0.98);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- ================= ABAS DE CONTEÚDO ================= -->
+        
+        <!-- ABA: GUIA (Ativa por Padrão) -->
+        <div id="tab-guia" class="tab-content active">
+            <h1>Guia / Metodologia</h1>
+            <p>A verdade fisiológica que o Instagram não te conta é esta: 20 minutos de burpees e polichinelos geram fadiga metabólica, não hipertrofia. Para um ectomorfo de 63kg sair dos 1,73m e chegar aos 72kg de massa densa, você não pode desperdiçar uma única caloria pulando. <strong>Você precisa de Tensão Mecânica.</strong> O músculo cresce quando as fibras de alto limiar são recrutadas até a falha ou muito próximo a ela.</p>
+            <p>Para comprimir um estímulo de 60 minutos em 20, removeremos os intervalos tradicionais de descanso e manipularemos a densidade do treino.</p>
+
+            <h2>A Engenharia dos 20 Minutos</h2>
+            <div class="card">
+                <p>O método é uma fusão de EDT (Escalating Density Training) com Rest-Pause. Em um treino tradicional, você perde 15% do tempo descansando.</p>
+                <p>Dividiremos seus 20 minutos em dois <strong>Blocos de Densidade de 8 minutos</strong>, antecedidos por 2 minutos de aquecimento.</p>
+                <h3>Como funciona o Bloco:</h3>
+                <ul>
+                    <li>Acione o cronômetro de 8 minutos no exercício pesado.</li>
+                    <li>Faça a primeira série até sobrar 1 repetição no tanque (RIR 1).</li>
+                    <li>Descanse exatamente <strong>15 a 20 segundos (Rest-Pause)</strong> e volte para a barra/chão.</li>
+                    <li>As repetições cairão drasticamente (ex: 10, depois 4, 3, 2, 2, 1...).</li>
+                    <li>Continue com micro-séries e 15s de descanso até o alarme tocar.</li>
+                </ul>
+            </div>
+
+            <h2>A Seleção de Exercícios</h2>
+            <div class="card">
+                <h3>Puxar (Pull - Dorsais e Bíceps)</h3>
+                <ul>
+                    <li><strong>Barra Fixa Assimétrica:</strong> Quase todo o peso vai para um lado.</li>
+                    <li><strong>Barra Fixa L-Sit:</strong> Impede roubo de quadril e destrói o core.</li>
+                    <li><strong>Chin-ups com Pausa Excêntrica:</strong> Sobe explosivo, desce em 4 segundos.</li>
+                </ul>
+                <h3>Empurrar (Push - Peito, Ombros e Tríceps)</h3>
+                <ul>
+                    <li><strong>Flexão Pseudo-Planche:</strong> Transfere a carga para deltoides e peitoral superior.</li>
+                    <li><strong>Dips entre Cadeiras:</strong> O maior construtor de peitoral inferior e tríceps.</li>
+                    <li><strong>Pike Push-ups:</strong> Equivalente ao desenvolvimento militar pesado.</li>
+                </ul>
+                <h3>Pernas (Legs - Quadríceps, Isquiotibiais)</h3>
+                <ul>
+                    <li><strong>Pistol Squats:</strong> Agachamento unilateral completo.</li>
+                    <li><strong>Shrimp Squats:</strong> Focado na cadeia posterior.</li>
+                    <li><strong>Sliding Leg Curls:</strong> Eleve o quadril e puxe os calcanhares.</li>
+                </ul>
+            </div>
+
+            <h2>Sobrecarga Progressiva</h2>
+            <div class="card">
+                <ul>
+                    <li><strong>Vencer o Placar:</strong> Conte o total de repetições nos 8 minutos e tente superar na próxima semana.</li>
+                    <li><strong>Braço de Alavanca:</strong> Incline mais o corpo, use menos dedos de apoio.</li>
+                    <li><strong>Tempo Sob Tensão (TUT):</strong> Desça em 4s, segure por 3s na posição difícil.</li>
+                </ul>
+            </div>
+            <br><br>
+        </div>
+
+        <!-- ABA: DIA 1 (PUSH) -->
+        <div id="tab-push" class="tab-content">
+            <h1>Dia 1: Push</h1>
+            
+            <!-- Painel de Cronômetros (Renderizado via JS depois) -->
+            <div class="timer-panel-container"></div>
+
+            <h2>Empurrar (Peito, Ombro, Tríceps)</h2>
+            
+            <div class="card rest-card">
+                <h3>00:00 - 02:00</h3>
+                <p>Rotação de ombros e punhos (Aquecimento).</p>
+            </div>
+
+            <div class="card">
+                <h3>02:00 - 10:00 (Bloco 1)</h3>
+                <p><strong>Flexão Pseudo-Planche</strong></p>
+                <p>Ativação inicial + micro-séries de Rest-Pause até o tempo acabar.</p>
+            </div>
+
+            <div class="card rest-card">
+                <h3>10:00 - 12:00</h3>
+                <p>Descanso total. Transição.</p>
+            </div>
+
+            <div class="card">
+                <h3>12:00 - 20:00 (Bloco 2)</h3>
+                <p><strong>Dips entre Cadeiras</strong></p>
+                <p>Ativação inicial + micro-séries de Rest-Pause até o tempo acabar.</p>
+            </div>
+        </div>
+
+        <!-- ABA: DIA 2 (PULL) -->
+        <div id="tab-pull" class="tab-content">
+            <h1>Dia 2: Pull</h1>
+            
+            <div class="timer-panel-container"></div>
+
+            <h2>Puxar (Costas, Bíceps, Antebraços)</h2>
+            
+            <div class="card rest-card">
+                <h3>00:00 - 02:00</h3>
+                <p>Pendurar ativo na barra fixa (Aquecimento e descompressão).</p>
+            </div>
+
+            <div class="card">
+                <h3>02:00 - 10:00 (Bloco 1)</h3>
+                <p><strong>Archer Pull-ups</strong></p>
+                <p>Alterne os braços a cada repetição. Micro-séries de Rest-Pause.</p>
+            </div>
+
+            <div class="card rest-card">
+                <h3>10:00 - 12:00</h3>
+                <p>Descanso total. Transição.</p>
+            </div>
+
+            <div class="card">
+                <h3>12:00 - 20:00 (Bloco 2)</h3>
+                <p><strong>Chin-ups com Pausa</strong></p>
+                <p>Subida explosiva, pausa de 1s no topo, desce em 3s. Micro-séries Rest-Pause.</p>
+            </div>
+        </div>
+
+        <!-- ABA: DIA 3 (LEGS) -->
+        <div id="tab-legs" class="tab-content">
+            <h1>Dia 3: Legs</h1>
+            
+            <div class="timer-panel-container"></div>
+
+            <h2>Pernas e Core (Quadríceps, Isquios, Abs)</h2>
+            
+            <div class="card rest-card">
+                <h3>00:00 - 02:00</h3>
+                <p>Cócoras profunda e mobilidade de tornozelo.</p>
+            </div>
+
+            <div class="card">
+                <h3>02:00 - 10:00 (Bloco 1)</h3>
+                <p><strong>Pistol Squats</strong></p>
+                <p>Alterne as pernas. Terminou a direita, vai para a esquerda, respira 15s e repete.</p>
+            </div>
+
+            <div class="card rest-card">
+                <h3>10:00 - 11:00</h3>
+                <p>Descanso total. (Apenas 1 minuto de transição).</p>
+            </div>
+
+            <div class="card">
+                <h3>11:00 - 17:00 (Bloco 2)</h3>
+                <p><strong>Sliding Leg Curls</strong></p>
+                <p>6 minutos de micro-séries com Rest-Pause.</p>
+            </div>
+
+            <div class="card">
+                <h3>17:00 - 20:00 (Bloco 3 - Finisher)</h3>
+                <p><strong>L-Sit Hold no chão</strong></p>
+                <p>3 minutos para acumular tempo sob tensão na posição.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= NAVEGAÇÃO INFERIOR ================= -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" onclick="openTab('guia', this)">
+            <span class="nav-icon">📖</span>
+            Guia
+        </button>
+        <button class="nav-btn" onclick="openTab('push', this)">
+            <span class="nav-icon">💪</span>
+            D1 Push
+        </button>
+        <button class="nav-btn" onclick="openTab('pull', this)">
+            <span class="nav-icon">🦍</span>
+            D2 Pull
+        </button>
+        <button class="nav-btn" onclick="openTab('legs', this)">
+            <span class="nav-icon">🦵</span>
+            D3 Legs
+        </button>
+    </nav>
+
+    <!-- Template do Painel de Cronômetros que será injetado nas abas -->
+    <template id="timer-template">
+        <div class="timer-panel">
+            <!-- Timer do Bloco 8 min -->
+            <div>
+                <div class="timer-label">Bloco de Treino</div>
+                <div class="timer-row">
+                    <div class="timer-display" id="display-block">08:00</div>
+                    <button class="btn btn-primary" onclick="toggleBlockTimer()">Start</button>
+                    <button class="btn btn-outline" onclick="resetBlockTimer()">↻</button>
+                </div>
+            </div>
+            <!-- Timer de Rest Pause 15 seg -->
+            <div>
+                <div class="timer-label" style="color: var(--alert-neon);">Rest-Pause</div>
+                <div class="timer-row">
+                    <div class="timer-display alert" id="display-rest">00:15</div>
+                    <button class="btn btn-alert" onclick="startRestTimer()">15s Go</button>
+                    <button class="btn btn-outline" onclick="resetRestTimer()">↻</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // Injetar o UI dos Cronômetros nas Abas de Treino
+        document.querySelectorAll('.timer-panel-container').forEach(container => {
+            const template = document.getElementById('timer-template');
+            container.appendChild(template.content.cloneNode(true));
+        });
+
+        // ================= GESTÃO DE ABAS =================
+        function openTab(tabName, btnElement) {
+            // Esconde todas as abas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Remove active dos botões
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            // Mostra a aba selecionada e ativa botão
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            btnElement.classList.add('active');
+            
+            // Religar os displays de timer ativos no DOM para a aba atual
+            updateTimerDisplaysDOM();
+        }
+
+        // ================= AUDIO API (Beep) =================
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playBeep() {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function triggerAlarm() {
+            playBeep();
+            // Efeito de Piscar a Tela (Flash)
+            document.body.classList.add('flash-alert');
+            setTimeout(() => {
+                document.body.classList.remove('flash-alert');
+            }, 1500);
+            
+            // Vibração para dispositivos móveis
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 500]);
+            }
+        }
+
+        // ================= LÓGICA DOS CRONÔMETROS (Globais) =================
+        let blockTimeLeft = 480; // 8 minutos
+        let blockTimerInterval = null;
+        let isBlockRunning = false;
+
+        let restTimeLeft = 15; // 15 segundos
+        let restTimerInterval = null;
+
+        // Atualiza os displays na aba ativa atualmente
+        function updateTimerDisplaysDOM() {
+            const activeTab = document.querySelector('.tab-content.active');
+            if(activeTab) {
+                const blockDisplay = activeTab.querySelector('#display-block');
+                const restDisplay = activeTab.querySelector('#display-rest');
+                if (blockDisplay) blockDisplay.textContent = formatTime(blockTimeLeft);
+                if (restDisplay) restDisplay.textContent = formatTime(restTimeLeft);
+            }
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function getActiveBtn(selector) {
+            const activeTab = document.querySelector('.tab-content.active');
+            return activeTab ? activeTab.querySelector(selector) : null;
+        }
+
+        // --- TIMER DE BLOCO (8 MIN) ---
+        function toggleBlockTimer() {
+            initAudio(); // Exige interação do usuário para destravar áudio no navegador
+            const btn = getActiveBtn('.btn-primary');
+            
+            if (isBlockRunning) {
+                // Pausar
+                clearInterval(blockTimerInterval);
+                isBlockRunning = false;
+                if(btn) { btn.textContent = 'Resume'; btn.style.backgroundColor = '#555'; btn.style.color = 'white'; }
+            } else {
+                // Iniciar
+                isBlockRunning = true;
+                if(btn) { btn.textContent = 'Pause'; btn.style.backgroundColor = 'var(--alert-neon)'; btn.style.color = 'white'; }
+                
+                blockTimerInterval = setInterval(() => {
+                    if (blockTimeLeft > 0) {
+                        blockTimeLeft--;
+                        updateTimerDisplaysDOM();
+                    } else {
+                        clearInterval(blockTimerInterval);
+                        isBlockRunning = false;
+                        triggerAlarm();
+                        if(btn) { btn.textContent = 'Start'; btn.style.backgroundColor = 'var(--primary-neon)'; btn.style.color = 'black'; }
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetBlockTimer() {
+            clearInterval(blockTimerInterval);
+            isBlockRunning = false;
+            blockTimeLeft = 480;
+            updateTimerDisplaysDOM();
+            
+            const btn = getActiveBtn('.btn-primary');
+            if(btn) { btn.textContent = 'Start'; btn.style.backgroundColor = 'var(--primary-neon)'; btn.style.color = 'black'; }
+        }
+
+        // --- TIMER DE REST-PAUSE (15 SEG) ---
+        function startRestTimer() {
+            initAudio();
+            clearInterval(restTimerInterval);
+            restTimeLeft = 15;
+            updateTimerDisplaysDOM();
+            
+            const btn = getActiveBtn('.btn-alert');
+            if(btn) { btn.textContent = 'Pausar'; btn.style.backgroundColor = '#990000'; }
+
+            restTimerInterval = setInterval(() => {
+                if (restTimeLeft > 0) {
+                    restTimeLeft--;
+                    updateTimerDisplaysDOM();
+                } else {
+                    clearInterval(restTimerInterval);
+                    triggerAlarm();
+                    if(btn) { btn.textContent = '15s Go'; btn.style.backgroundColor = 'var(--alert-neon)'; }
+                }
+            }, 1000);
+        }
+
+        function resetRestTimer() {
+            clearInterval(restTimerInterval);
+            restTimeLeft = 15;
+            updateTimerDisplaysDOM();
+            const btn = getActiveBtn('.btn-alert');
+            if(btn) { btn.textContent = '15s Go'; btn.style.backgroundColor = 'var(--alert-neon)'; }
+        }
+    </script>
+</body>
+</html>
